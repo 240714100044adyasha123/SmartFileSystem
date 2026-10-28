@@ -74,6 +74,9 @@ sudo systemctl restart smartfile.service
 
 # 6. Configure Nginx Reverse Proxy (Routes Port 80 -> Port 5500)
 echo "🌐 Configuring Nginx reverse proxy on Port 80..."
+if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
+    sudo rm -f /etc/nginx/sites-enabled/default
+fi
 if [ -f "$APP_DIR/nginx.conf" ]; then
     sudo cp $APP_DIR/nginx.conf /etc/nginx/nginx.conf
 fi
