@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  smartfile-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartfile-cloud-os
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "80:5500"      # Standard HTTP port on EC2
+      - "5500:5500"    # Dev/direct port matching Cognito redirect URI
+    environment:
+      - PORT=${PORT:-5500}
+      - HOST=${HOST:-0.0.0.0}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - AWS_REGION=${AWS_REGION:-ap-south-1}
+      - COGNITO_DOMAIN=${COGNITO_DOMAIN}
+      - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
+      - API_GATEWAY_URL=${API_GATEWAY_URL}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - DYNAMODB_TABLE=${DYNAMODB_TABLE}
+      - SNS_TOPIC_ARN=${SNS_TOPIC_ARN}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; exit(0 if urllib.request.urlopen('http://localhost:5500/health').getcode() == 200 else 1)"]
+      interval: 20s
+      timeout: 5s
+      retries: 3

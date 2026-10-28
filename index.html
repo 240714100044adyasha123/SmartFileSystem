@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFile Cloud OS — Event-Driven File Processing on AWS</title>
+    
+    <!-- Meta tags for Academic & Portfolio Presentation -->
+    <meta name="description" content="Awwwards-level event-driven cloud file processing architecture powered by AWS Cognito, API Gateway, S3 Pre-Signed URLs, Lambda, DynamoDB, SNS, and deployed on EC2.">
+    <meta name="author" content="Academic Cloud Engineering Project">
+
+    <!-- Fonts & Stylesheet -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300f2fe'><path d='M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z'/></svg>">
+</head>
+<body>
+
+    <!-- Cyber Background Matrix & Ambient Lights -->
+    <div class="cyber-grid-overlay"></div>
+    <canvas id="bg-canvas"></canvas>
+    <div class="ambient-glow glow-hero-center"></div>
+    <div class="ambient-glow glow-top-left"></div>
+    <div class="ambient-glow glow-top-right"></div>
+    <div class="ambient-glow glow-bottom-center"></div>
+
+    <div class="app-container">
+        
+        <!-- ==============================================================================
+             PRECISION FLOATING NAVBAR
+             ============================================================================== -->
+        <div class="navbar-wrapper">
+            <header class="app-header">
+                <!-- Brand Section -->
+                <a href="#overview" class="brand-section">
+                    <div class="brand-emblem">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                            <polyline points="12 12 12 16"/>
+                            <polyline points="10 14 12 12 14 14"/>
+                        </svg>
+                    </div>
+                    <div class="brand-text-block">
+                        <span class="brand-name">SmartFile</span>
+                        <span class="brand-badge">AWS OS v2.4</span>
+                    </div>
+                </a>
+
+                <!-- Centered Navigation Island -->
+                <nav class="nav-island">
+                    <a href="#overview" class="nav-item active">Overview</a>
+                    <a href="#pipeline" class="nav-item">Pipeline</a>
+                    <a href="#ingestion" class="nav-item">Ingestion</a>
+                    <a href="#telemetry" class="nav-item">CloudWatch</a>
+                    <a href="#inventory" class="nav-item">Registry</a>
+                </nav>
+
+                <!-- Actions Cluster -->
+                <div class="header-actions">
+                    <!-- Live Cloud Status Pill -->
+                    <div class="live-cloud-pill" title="Amazon Web Services Region Mumbai Status: Normal">
+                        <span class="pulsing-dot"></span>
+                        <span>AWS Active (ap-south-1)</span>
+                    </div>
+
+                    <!-- User Profile Badge (When signed in) -->
+                    <div class="user-profile-badge" id="user-profile-badge">
+                        <span class="user-avatar-circle">U</span>
+                        <span id="user-email-display">user@aws.edu</span>
+                        <button class="btn btn-secondary btn-sm" id="btn-logout" title="Sign out" style="padding: 2px 8px; font-size: 11px;">Exit</button>
+                    </div>
+
+                    <!-- Cognito Sign-In CTA -->
+                    <button class="btn btn-aws btn-sm" id="btn-login">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span>Sign In with Cognito</span>
+                    </button>
+
+                    <!-- Architecture Blueprint Trigger -->
+                    <button class="btn btn-secondary btn-icon-only" onclick="window.app.openArchitectureModal()" title="View Academic Cloud Architecture Blueprint">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2"/>
+                            <path d="M3 9h18"/>
+                            <path d="M9 21V9"/>
+                        </svg>
+                    </button>
+
+                    <!-- Settings Trigger -->
+                    <button class="btn btn-secondary btn-icon-only" onclick="window.app.openSettingsModal()" title="AWS Service Configuration & Demo Mode">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+        </div>
+
+        <!-- ==============================================================================
+             HERO SECTION
+             ============================================================================== -->
+        <section class="hero-section" id="overview">
+            <div class="hero-pill-badge">
+                <span class="hero-pill-dot"></span>
+                <span>Academic Capstone • Serverless Event-Driven Pipeline v2.4</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; opacity: 0.7;">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
+            </div>
+
+            <h1 class="hero-title">
+                Autonomous <span class="gradient-text-cyan">File Ingestion</span><br>
+                & Intelligent <span class="gradient-text-aws">AWS Processing</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Engineered for enterprise scale: offloads <strong>100% of network upload overhead</strong> directly from Amazon EC2 to Amazon S3 via cryptographically signed Pre-Signed URLs, orchestrating asynchronous Lambda execution, DynamoDB metadata indexing, and SNS alerts.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#ingestion" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" x2="12" y1="3" y2="15"/>
+                    </svg>
+                    <span>Ingest New File</span>
+                </a>
+                
+                <button class="btn btn-secondary" onclick="window.app.openArchitectureModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                        <polyline points="2 17 12 22 22 17"/>
+                        <polyline points="2 12 12 17 22 12"/>
+                    </svg>
+                    <span>Architecture Blueprint</span>
+                </button>
+                
+                <a href="#telemetry" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 17 10 11 4 5"/>
+                        <line x1="12" x2="20" y1="19" y2="19"/>
+                    </svg>
+                    <span>CloudWatch HUD</span>
+                </a>
+            </div>
+
+            <!-- Live Metrics Ribbon -->
+            <div class="metrics-ribbon">
+                <div class="metric-card accent-cyan">
+                    <div class="metric-value" id="stat-total-files">0</div>
+                    <div class="metric-label">Objects Ingested</div>
+                </div>
+                <div class="metric-card accent-violet">
+                    <div class="metric-value" id="stat-total-bytes">0 MB</div>
+                    <div class="metric-label">Processed Volume</div>
+                </div>
+                <div class="metric-card accent-amber">
+                    <div class="metric-value" id="stat-avg-latency">-- ms</div>
+                    <div class="metric-label">Avg Pipeline Latency</div>
+                </div>
+                <div class="metric-card accent-emerald">
+                    <div class="metric-value" style="color: var(--emerald-success);">100%</div>
+                    <div class="metric-label">EC2 Bandwidth Saved</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================================
+             INTERACTIVE AWS PIPELINE VISUALIZER (5-STAGE STEPPER)
+             ============================================================================== -->
+        <section class="pipeline-section" id="pipeline">
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                        <span>Interactive Event-Driven Pipeline Stepper</span>
+                    </h3>
+                    <p>Click any node below to inspect architectural design decisions, IAM security policies, and academic viva explanations.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="window.pipeline.resetAll()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                        <path d="M16 21h5v-5"/>
+                    </svg>
+                    <span>Reset Stepper</span>
+                </button>
+            </div>
+
+            <!-- Pipeline nodes rendered via JavaScript -->
+            <div id="pipeline-container"></div>
+        </section>
+
+        <!-- ==============================================================================
+             FILE INGESTION & DROPZONE SECTION
+             ============================================================================== -->
+        <section class="upload-section" id="ingestion">
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+                        </svg>
+                        <span>Direct-To-S3 Ingestion Port</span>
+                    </h3>
+                    <p>Select or drag any file. Browser verifies cryptographic SHA-256 integrity before requesting presigned IAM permissions.</p>
+                </div>
+            </div>
+
+            <div class="upload-grid">
+                <!-- Dropzone Box -->
+                <div class="dropzone-box" id="dropzone">
+                    <input type="file" id="file-input" style="display: none;">
+
+                    <!-- State 1: Drop Prompt -->
+                    <div id="drop-prompt" style="display: flex; flex-direction: column; align-items: center;">
+                        <div class="radar-target">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" x2="12" y1="3" y2="15"/>
+                            </svg>
+                        </div>
+                        <h4 class="drop-title">Drag & Drop Files Here</h4>
+                        <p class="drop-subtitle">or click anywhere inside this portal to select a file from your local system</p>
+                        <div class="file-specs-pill">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>S3 Multi-Part Supported • Max 500 MB</span>
+                        </div>
+                    </div>
+
+                    <!-- State 2: Selected File Preview Card -->
+                    <div class="file-preview-card" id="file-preview-card">
+                        <div class="file-preview-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                        </div>
+                        <div class="file-preview-details">
+                            <div class="preview-name" id="preview-file-name">filename.pdf</div>
+                            <div class="preview-meta">
+                                <span id="preview-file-size">0 KB</span> • <span id="preview-file-type">application/pdf</span>
+                            </div>
+                            <div class="preview-hash" id="preview-file-hash">Computing SHA-256 checksum...</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="clear-file-btn" style="margin-top: 8px;">
+                            <span>Change File</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pipeline Launch Controls & Architecture Panel -->
+                <div class="upload-controls-panel">
+                    <div>
+                        <div class="panel-header">
+                            <h3>Production Ingestion Protocol</h3>
+                            <p>Direct Browser-to-S3 Multi-Part Transfer ensures high throughput and zero EC2 CPU degradation.</p>
+                        </div>
+
+                        <div class="architecture-bullet-list">
+                            <div class="bullet-item">
+                                <div class="bullet-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div><strong>Client-Side PKCE Validation:</strong> Verifies user identity claims via Amazon Cognito User Pool without leaking secrets.</div>
+                            </div>
+                            <div class="bullet-item">
+                                <div class="bullet-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div><strong>Pre-Signed S3 Security:</strong> API Gateway restricts write access to a single object key with strict 15-minute TTL.</div>
+                            </div>
+                            <div class="bullet-item">
+                                <div class="bullet-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div><strong>Serverless Event Trigger:</strong> AWS Lambda spins up instantly on S3 PutObject completion to extract metadata.</div>
+                            </div>
+                            <div class="bullet-item">
+                                <div class="bullet-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div><strong>NoSQL Audit & Notification:</strong> Metadata persisted to DynamoDB, and alerts broadcast via Amazon SNS topic.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <!-- Real-Time Progress Box -->
+                        <div class="upload-progress-box" id="upload-progress-box">
+                            <div class="progress-header">
+                                <span id="progress-status-text">Uploading to S3...</span>
+                                <span id="progress-percentage">0%</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="panel-cta-buttons">
+                            <button class="btn btn-primary" id="upload-btn" style="flex: 1;" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                                <span>Launch Pipeline Ingestion</span>
+                            </button>
+                            <button class="btn btn-secondary" id="browse-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                                </svg>
+                                <span>Browse Files</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================================
+             CLOUDWATCH LIVE TELEMETRY TERMINAL HUD
+             ============================================================================== -->
+        <section class="telemetry-section" id="telemetry">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="tdot tdot-red"></span>
+                    <span class="tdot tdot-yellow"></span>
+                    <span class="tdot tdot-green"></span>
+                    <span class="terminal-title">AWS CloudWatch Live Stream • LogGroup: /aws/lambda/SmartFile_Processor</span>
+                </div>
+
+                <div class="terminal-actions">
+                    <select class="terminal-select" id="log-filter-select">
+                        <option value="ALL">All Cloud Services</option>
+                        <option value="COGNITO">Amazon Cognito</option>
+                        <option value="API-GATEWAY">API Gateway</option>
+                        <option value="S3-INGEST">Amazon S3</option>
+                        <option value="LAMBDA-EXEC">AWS Lambda</option>
+                        <option value="DYNAMODB">Amazon DynamoDB</option>
+                        <option value="SNS-DISPATCH">Amazon SNS</option>
+                        <option value="EC2">Amazon EC2</option>
+                    </select>
+
+                    <button class="terminal-btn" id="btn-export-logs" title="Export logs for viva examination">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        <span>Export Logs</span>
+                    </button>
+                    <button class="terminal-btn" id="btn-clear-logs" title="Clear terminal screen">
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="terminal-body" id="telemetry-terminal">
+                <div class="log-empty-state">
+                    <span class="pulsing-dot" style="margin-right: 6px;"></span> CloudWatch event stream active. Listening for AWS Pipeline telemetry...
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================================
+             PROCESSED FILES REGISTRY / DATA GRID
+             ============================================================================== -->
+        <section class="files-section" id="inventory">
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                        </svg>
+                        <span>Processed Files Registry (DynamoDB Store)</span>
+                    </h3>
+                    <p>Live inventory of files indexed in DynamoDB with cryptographic verification and Lambda performance metrics.</p>
+                </div>
+                <div class="brand-badge" id="file-counter-badge">0 Files</div>
+            </div>
+
+            <div class="table-toolbar">
+                <div class="filter-pills-group">
+                    <button class="filter-pill active" data-filter="ALL">All Files</button>
+                    <button class="filter-pill" data-filter="DOCUMENT">Documents</button>
+                    <button class="filter-pill" data-filter="IMAGE">Images</button>
+                    <button class="filter-pill" data-filter="CODE">Source Code</button>
+                    <button class="filter-pill" data-filter="ARCHIVE">Archives</button>
+                </div>
+
+                <div class="search-input-wrapper">
+                    <span class="search-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                        </svg>
+                    </span>
+                    <input type="text" id="file-search" placeholder="Search by name, category, or hash...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>File Name & Integrity Hash</th>
+                            <th>Category</th>
+                            <th>File Size</th>
+                            <th>Status</th>
+                            <th>Pipeline Latency</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="files-table-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ==============================================================================
+         MODAL 1: FILE INSPECTOR (DEEP AWS METADATA)
+         ============================================================================== -->
+    <div class="modal-overlay" id="modal-file-inspector">
+        <div class="modal-window modal-wide">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" x2="16.65" y1="21" y2="16.65"/>
+                    </svg>
+                    <span id="inspect-title">File Details</span>
+                </div>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="inspect-grid">
+                    <span class="inspect-key">S3 Object ARN:</span>
+                    <span class="inspect-val" id="inspect-s3-arn">arn:aws:s3:::bucket/file</span>
+
+                    <span class="inspect-key">SHA-256 Hash:</span>
+                    <span class="inspect-val" id="inspect-sha256">hash</span>
+
+                    <span class="inspect-key">MIME Content-Type:</span>
+                    <span class="inspect-val" id="inspect-mime">application/octet-stream</span>
+
+                    <span class="inspect-key">Object Size:</span>
+                    <span class="inspect-val" id="inspect-size">0 Bytes</span>
+
+                    <span class="inspect-key">AWS Region:</span>
+                    <span class="inspect-val" id="inspect-region">ap-south-1 (Asia Pacific - Mumbai)</span>
+                </div>
+
+                <h4 style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">DynamoDB Item Schema (JSON Representation):</h4>
+                <pre class="log-meta" style="max-height: 220px; overflow-y: auto;" id="inspect-dynamo-json"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         MODAL 2: STAGE DEEP DIVE (ACADEMIC VIVA NOTES)
+         ============================================================================== -->
+    <div class="modal-overlay" id="modal-stage-detail">
+        <div class="modal-window">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                        <polyline points="2 17 12 22 22 17"/>
+                        <polyline points="2 12 12 17 22 12"/>
+                    </svg>
+                    <span id="stage-modal-title">AWS Stage Overview</span>
+                </div>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="brand-badge" id="stage-modal-service" style="margin-bottom: 12px; display: inline-block;">Service</div>
+                <p id="stage-modal-desc" style="color: var(--text-primary); font-size: 14px; margin-bottom: 16px;"></p>
+                
+                <div class="viva-box">
+                    <strong style="color: var(--cyan-neon); display: block; margin-bottom: 4px;">Academic Viva Q&A Talking Point:</strong>
+                    <span id="stage-modal-viva"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm modal-close-btn">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         MODAL 3: ACADEMIC ARCHITECTURE BLUEPRINT
+         ============================================================================== -->
+    <div class="modal-overlay" id="modal-architecture">
+        <div class="modal-window modal-wide">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <path d="M3 9h18"/>
+                        <path d="M9 21V9"/>
+                    </svg>
+                    <span>Academic AWS Cloud Architecture Blueprint</span>
+                </div>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                    This system implements an enterprise-grade <strong>Decoupled Event-Driven Ingestion Architecture</strong>. File streams never bottleneck the EC2 instance; instead, the browser streams directly to S3 using short-lived IAM credentials.
+                </p>
+
+                <div style="background: rgba(0,0,0,0.55); padding: 22px; border-radius: 14px; border: 1px solid var(--border-glass); font-family: var(--font-mono); font-size: 12px; line-height: 1.85; color: #A5F3FC; overflow-x: auto;">
++-------------------------------------------------------------------------------------------------------+
+|                                    AWS CLOUD (ap-south-1 Region)                                       |
+|                                                                                                       |
+|  [ User Browser ] --(1. PKCE Auth)--------&gt; [ Amazon Cognito User Pool ]                             |
+|         |                                           | (Returns JWT ID Token)                          |
+|         +-----------(2. POST /upload-url)---&gt; [ Amazon API Gateway ]                                  |
+|         |                 (With Bearer JWT)         | (Generates Pre-Signed S3 URL via IAM)            |
+|         |                                           v                                                 |
+|         +-----------(3. Direct Binary PUT)---&gt; [ Amazon S3 Bucket ]                                   |
+|                                                     |                                                 |
+|                                                     | (4. Asynchronous s3:ObjectCreated Event)        |
+|                                                     v                                                 |
+|                                            [ AWS Lambda Worker ]                                      |
+|                                                     |                                                 |
+|                            +------------------------+------------------------+                        |
+|                            | (5a. PutItem Metadata)                          | (5b. Publish Event)    |
+|                            v                                                 v                        |
+|                  [ Amazon DynamoDB ]                                [ Amazon SNS Topic ]              |
+|                  (Audit & Registry)                                 (Email / SMS Subscribers)         |
+|                                                                                                       |
+|  [ Amazon EC2 Instance ] ── Hosts Nginx Reverse Proxy + Web App UI + Health Check Monitoring          |
++-------------------------------------------------------------------------------------------------------+
+                </div>
+
+                <div class="viva-box" style="margin-top: 20px;">
+                    <strong style="color: var(--aws-orange); display: block; margin-bottom: 6px;">Key Exam Viva Questions Answered:</strong>
+                    <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                        <li><strong>Why not upload directly through EC2?</strong> Uploading multi-gigabyte files through EC2 saturates network interfaces, causes HTTP thread blocking, and increases bandwidth billing. Direct S3 uploads scale infinitely with zero EC2 overhead.</li>
+                        <li><strong>How is security maintained without backend credentials in frontend?</strong> AWS Cognito authenticates the client via PKCE. API Gateway verifies the JWT token and creates a temporary Pre-Signed S3 URL valid only for the specific file name, MIME type, and a short 15-minute expiration window.</li>
+                        <li><strong>What is the role of EC2 in this project?</strong> The EC2 instance acts as the dedicated host for the high-availability web client, serving static assets via Nginx, monitoring health endpoints (`/health`), and acting as the management portal.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm modal-close-btn">Close Blueprint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         MODAL 4: AWS CONFIGURATION & DEMO MODE
+         ============================================================================== -->
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-window">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span>AWS Service Configuration</span>
+                </div>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="aws-settings-form">
+                <div class="modal-body">
+                    <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">
+                        Configure your AWS resource endpoints. You can also toggle <strong>Demo / Simulation Mode</strong> for offline presentation without live AWS billing.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">API Gateway Upload-URL Endpoint:</label>
+                        <input type="text" class="form-input" id="setting-api-url" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Cognito OAuth2 Domain:</label>
+                        <input type="text" class="form-input" id="setting-cognito-domain" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Cognito App Client ID:</label>
+                        <input type="text" class="form-input" id="setting-client-id" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">AWS Region:</label>
+                        <input type="text" class="form-input" id="setting-region" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">S3 Target Bucket Name:</label>
+                        <input type="text" class="form-input" id="setting-s3-bucket" required>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label class="form-checkbox-label">
+                            <input type="checkbox" id="setting-demo-mode" style="width: 18px; height: 18px; accent-color: var(--cyan-neon);">
+                            <span><strong>Enable Hybrid Demo / Simulation Mode</strong> (Recommended for offline viva evaluations if AWS credentials or internet are unavailable)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Configurations</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/particle-background.js"></script>
+    <script src="js/telemetry-console.js"></script>
+    <script src="js/pipeline-visualizer.js"></script>
+    <script src="js/aws-service.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — SmartFile Cloud OS</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300f2fe'><path d='M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z'/></svg>">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+
+    <div class="cyber-grid-overlay"></div>
+    <canvas id="bg-canvas"></canvas>
+    <div class="ambient-glow glow-hero-center"></div>
+    <div class="ambient-glow glow-top-left"></div>
+    <div class="ambient-glow glow-top-right"></div>
+
+    <div style="position: relative; z-index: 1; width: 100%; max-width: 440px; padding: 24px;">
+        <div style="background: var(--glass-card); border: 1px solid var(--border-glass); border-radius: 24px; padding: 44px 34px; backdrop-filter: blur(24px); box-shadow: var(--shadow-lg), 0 0 40px rgba(0,0,0,0.6); text-align: center;">
+            
+            <div class="brand-emblem" style="width: 54px; height: 54px; margin: 0 auto 20px; border-radius: 16px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                    <polyline points="12 12 12 16"/>
+                    <polyline points="10 14 12 12 14 14"/>
+                </svg>
+            </div>
+
+            <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; margin-bottom: 6px;">SmartFile Cloud OS</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 30px;">Amazon Cognito Identity & Access Management</p>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <button class="btn btn-aws" id="btn-login" style="width: 100%; padding: 13px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span>Sign In via AWS Cognito</span>
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'" style="width: 100%; padding: 13px;">
+                    <span>Continue as Guest / Demo Mode</span>
+                </button>
+            </div>
+
+            <div style="margin-top: 32px; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); line-height: 1.7; border-top: 1px solid var(--border-subtle); padding-top: 20px;">
+                Region: AWS ap-south-1 (Mumbai)<br>
+                OAuth 2.0 PKCE • RFC 7636 Compliant
+            </div>
+        </div>
+    </div>
+
+    <script src="js/particle-background.js"></script>
+    <script src="js/telemetry-console.js"></script>
+    <script src="js/pipeline-visualizer.js"></script>
+    <script src="js/aws-service.js"></script>
+    <script>
+        document.getElementById('btn-login').addEventListener('click', () => {
+            window.aws.initiateCognitoLogin();
+        });
+    </script>
+</body>
+</html>

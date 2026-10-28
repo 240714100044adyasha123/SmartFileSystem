@@ -1,0 +1,21 @@
+# Environment files with sensitive credentials
+.env
+.env.local
+.env.*.local
+
+# AWS Credentials and Keys
+*.pem
+*.key
+credentials
+aws_keys.txt
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
